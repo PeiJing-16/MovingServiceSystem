@@ -1,7 +1,7 @@
 {
   "name": "moving-service-system",
   "version": "1.0.0",
-  "description": "Complete MERN Task Manager Application",
+  "description": "Complete Moving Service System",
   "scripts": {
     "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend",
     "start": "concurrently \"npm run prod --prefix backend\" \"npm start --prefix frontend\"",

@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import UserLoginRegister from './pages/UserLoginRegister';
+import AdminLogin from './pages/AdminLogin';
 import Profile from './pages/Profile';
 import Tasks from './pages/Tasks';
 
@@ -10,8 +10,10 @@ function App() {
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<UserLoginRegister />} />
+        <Route path="/register" element={<UserLoginRegister />} />
+        <Route path="/admin" element={<AdminLogin />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/tasks" element={<Tasks />} />
       </Routes>

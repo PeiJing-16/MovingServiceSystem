@@ -63,8 +63,8 @@ const UserManageBooking = () => {
     }
   };
 
-  const handleEdit = (bookingId) => {
-    navigate('/bookings/create', { state: { bookingId } });
+  const handleEdit = (booking) => {
+    navigate('/bookings/create', { state: { booking } });
   };
 
   if (!user) {
@@ -80,7 +80,7 @@ const UserManageBooking = () => {
               key={tab.key}
               className={`px-6 py-2 rounded-full font-semibold transition drop-shadow-lg ${
                 activeTab === tab.key
-                  ? 'bg-[#F3FAFF] text-black'
+                  ? 'bg-[#93A9C0] text-black'
                   : 'bg-[#142C3E] text-white'
               }`}
               onClick={() => setActiveTab(tab.key)}
@@ -91,9 +91,9 @@ const UserManageBooking = () => {
         </div>
 
         {loading ? (
-          <p className="text-center text-[#0d2440]">Loading bookings...</p>
+          <p className="text-center text-black">Loading bookings...</p>
         ) : filteredBookings.length === 0 ? (
-          <p className="text-center text-[#0d2440]">There is no booking for this category.</p>
+          <p className="text-center text-black">There is no booking for this category.</p>
         ) : (
           <div className="overflow-x-auto rounded-2xl bg-white shadow-lg">
             <table className="w-full text-left border-separate border-spacing-0">
@@ -107,7 +107,7 @@ const UserManageBooking = () => {
                   <th className="px-4 py-3">Time</th>
                   <th className="px-4 py-3">Remark</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 rounded-tr-2xl ">Actions</th>
+                  {activeTab === 'pending' && <th className="px-4 py-3 rounded-tr-2xl ">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -126,24 +126,27 @@ const UserManageBooking = () => {
                     <td className="px-4 py-3 border border-[#93A9C0]">{booking.time || '—'}</td>
                     <td className="px-4 py-3 border border-[#93A9C0] text-sm">{booking.remarks || '—'}</td>
                     <td className="px-4 py-3 border border-[#93A9C0] capitalize">{booking.status}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0]">
-                      <div className="flex gap-3 text-[#0d2440]">
-                        <button
-                          className="hover:text-[#2563eb]"
-                          onClick={() => handleEdit(booking._id)}
-                          aria-label="Edit booking"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="hover:text-[#dc2626]"
-                          onClick={() => handleDelete(booking._id)}
-                          aria-label="Delete booking"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+                    {activeTab === 'pending' && (
+                      <td className="px-4 py-3 border border-[#93A9C0]">
+                        <div className="flex gap-4">
+                          <button
+                            className="hover:text-[#2563eb]"
+                            onClick={() => handleEdit(booking)}
+                            aria-label="Edit booking"
+                          >
+                            Edit
+                          </button>
+                          
+                          <button
+                            className="hover:text-[#dc2626]"
+                            onClick={() => handleDelete(booking._id)}
+                            aria-label="Delete booking"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

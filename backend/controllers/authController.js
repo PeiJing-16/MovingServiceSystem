@@ -1,5 +1,6 @@
 
 const User = require('../models/User');
+const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -96,4 +97,24 @@ const deleteUserAccount = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, updateUserProfile, getProfile, deleteUserAccount };
+const loginAdmin = async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const admin = await Admin.findOne({ username });
+        if (admin && (await bcrypt.compare(password, admin.password))) {
+            res.json({
+                id: admin.id,
+                username: admin.username,
+                email: admin.email,
+                role: admin.role || 'admin',
+                isAdmin: true,
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid admin username or password' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, updateUserProfile, getProfile, deleteUserAccount, loginAdmin };

@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext';
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.isAdmin;
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate(isAdmin ? '/admin' : '/login');
   };
 
   return (
@@ -15,31 +16,50 @@ const Navbar = () => {
       <Link to="/" className="flex items-center gap-2">
         <span className="text-2xl font-bold">Moving Service Scheduler System</span>
       </Link>
-      <div>
+      <div className="flex items-center gap-4">
         {user ? (
-          <>
-            <Link to="/tasks" className="mr-4">
-              CRUD
-            </Link>
-            <Link to="/profile" className="mr-4">
-              Profile
-            </Link>
-            <Link to="/bookings/create" className="mr-4">
-              Get Quote
-            </Link>
-            <Link to="/bookings/view/user" className="mr-4">
-              View Bookings
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 px-4 py-2 rounded hover:bg-red-700"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <></>
-        )}
+          isAdmin ? (
+            <>
+              <Link to="/admin/bookings" className="font-medium hover:underline">
+                Booking
+              </Link>
+              <button className="font-medium text-white/80 cursor-not-allowed" title="Coming soon">
+                Service
+              </button>
+              <button className="font-medium text-white/80 cursor-not-allowed" title="Coming soon">
+                Staff
+              </button>
+              <button className="font-medium text-white/80 cursor-not-allowed" title="Coming soon">
+                Vehicle
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded hover:bg-red-700"
+              >
+                Logout
+              </button>
+              <span className="font-semibold">Hi, {user.username || 'admin'}</span>
+            </>
+          ) : (
+            <>
+              <Link to="/profile" className="mr-2 font-medium">
+                Profile
+              </Link>
+              <Link to="/bookings/create" className="mr-2 font-medium">
+                Get Quote
+              </Link>
+              <Link to="/bookings/view/user" className="mr-2 font-medium">
+                View Bookings
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </>
+          )
+        ) : null}
       </div>
     </nav>
   );

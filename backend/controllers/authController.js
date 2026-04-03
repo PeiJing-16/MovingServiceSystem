@@ -8,13 +8,20 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, address, phone } = req.body;
     try {
         const userExists = await User.findOne({ email });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-        const user = await User.create({ name, email, password });
-        res.status(201).json({ id: user.id, name: user.name, email: user.email, token: generateToken(user.id) });
+        const user = await User.create({ name, email, password, address, phone });
+        res.status(201).json({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            address: user.address,
+            phone: user.phone,
+            token: generateToken(user.id)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -44,8 +51,8 @@ const getProfile = async (req, res) => {
       res.status(200).json({
         name: user.name,
         email: user.email,
-        university: user.university,
         address: user.address,
+        phone: user.phone,
       });
     } catch (error) {
       res.status(500).json({ message: 'Server error', error: error.message });
@@ -57,17 +64,36 @@ const updateUserProfile = async (req, res) => {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const { name, email, university, address } = req.body;
+        const { name, email, address, phone } = req.body;
         user.name = name || user.name;
         user.email = email || user.email;
-        user.university = university || user.university;
         user.address = address || user.address;
+        user.phone = phone || user.phone;
 
         const updatedUser = await user.save();
-        res.json({ id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, university: updatedUser.university, address: updatedUser.address, token: generateToken(updatedUser.id) });
+        res.json({
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          address: updatedUser.address,
+          phone: updatedUser.phone,
+          token: generateToken(updatedUser.id)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-module.exports = { registerUser, loginUser, updateUserProfile, getProfile };
+const deleteUserAccount = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        await user.deleteOne();
+        res.status(200).json({ message: 'Account deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, updateUserProfile, getProfile, deleteUserAccount };

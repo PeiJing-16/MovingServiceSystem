@@ -26,6 +26,16 @@ const AdminStaff = () => {
     fetchStaff();
   }, [user]);
 
+  const handleDelete = async (staffId) => {
+    if (!window.confirm('Delete this staff member?')) return;
+    try {
+      await axiosInstance.delete(`/api/staff/${staffId}`);
+      setStaff((prev) => prev.filter((member) => member._id !== staffId));
+    } catch (error) {
+      alert('Failed to delete staff member.');
+    }
+  };
+
   if (!user?.isAdmin) {
     return (
       <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6 text-center">
@@ -52,7 +62,7 @@ const AdminStaff = () => {
           <h1 className="text-4xl lone font-semibold text-[#0d2440]">Staff Management</h1>
           <button
             className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#0d2440] font-semibold shadow-md hover:bg-[#f0f4ff]"
-            title="Add staff coming soon"
+            onClick={() => navigate('/admin/staff/add')}
           >
             <span className="text-xl">＋</span> Add Staff
           </button>
@@ -90,11 +100,19 @@ const AdminStaff = () => {
                         : '-'}
                     </td>
                     <td className="px-4 py-4 border-t border-[#c8e1fb]">
-                      <div className="flex gap-3 opacity-60">
-                        <button className="cursor-not-allowed" title="Coming soon">
+                      <div className="flex gap-3">
+                        <button
+                          className="hover:opacity-80"
+                          onClick={() => handleDelete(member._id)}
+                          aria-label="Delete staff"
+                        >
                           <img src="/Delete.png" alt="Delete staff" className="h-6 w-6" />
                         </button>
-                        <button className="cursor-not-allowed" title="Coming soon">
+                        <button
+                          className="hover:opacity-80"
+                          onClick={() => navigate('/admin/staff/add', { state: { staff: member } })}
+                          aria-label="Edit staff"
+                        >
                           <img src="/Update.png" alt="Edit staff" className="h-6 w-6" />
                         </button>
                       </div>

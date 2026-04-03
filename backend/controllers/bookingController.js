@@ -1,5 +1,17 @@
 const Booking = require('../models/Booking');
 
+const normalizeAssignedStaff = (value) => {
+  if (value === undefined) return undefined;
+  if (value === null) return [];
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value ? [value] : [];
+  }
+  return [];
+};
+
 const createBooking = async (req, res) => {
   try {
     const booking = await Booking.create({ ...req.body, user: req.user.id });
@@ -32,7 +44,10 @@ const updateBooking = async (req, res) => {
     booking.date = req.body.date ?? booking.date;
     booking.time = req.body.time ?? booking.time;
     booking.remarks = req.body.remarks ?? booking.remarks;
-    booking.assignedStaff = req.body.assignedStaff ?? booking.assignedStaff;
+    const normalizedAssignedStaff = normalizeAssignedStaff(req.body.assignedStaff);
+    if (normalizedAssignedStaff !== undefined) {
+      booking.assignedStaff = normalizedAssignedStaff;
+    }
     booking.status = req.body.status ?? booking.status;
 
     const updated = await booking.save();
@@ -70,7 +85,10 @@ const adminUpdateBooking = async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-    booking.assignedStaff = req.body.assignedStaff ?? booking.assignedStaff;
+    const normalizedAssignedStaff = normalizeAssignedStaff(req.body.assignedStaff);
+    if (normalizedAssignedStaff !== undefined) {
+      booking.assignedStaff = normalizedAssignedStaff;
+    }
     booking.status = req.body.status ?? booking.status;
     booking.remarks = req.body.remarks ?? booking.remarks;
 

@@ -19,7 +19,7 @@ const formatDate = (value) => {
 
 const formatTime = (value) => value || '—';
 
-const AdminBookings = () => {
+const AdminBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
@@ -31,9 +31,7 @@ const AdminBookings = () => {
       if (!user?.isAdmin) return;
       setLoading(true);
       try {
-        const response = await axiosInstance.get('/api/bookings/admin/all', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        const response = await axiosInstance.get('/api/bookings/admin/all');
         setBookings(response.data);
       } catch (error) {
         alert('Failed to load bookings for admin.');
@@ -71,8 +69,10 @@ const AdminBookings = () => {
     );
   }
 
-  const handleCardAction = (type) => {
-    alert(`${type} action coming soon.`);
+  const handleCardAction = (type, booking) => {
+    if (type === 'edit') {
+      navigate('/admin/bookings/manage', { state: { booking } });
+    }
   };
 
   return (
@@ -137,13 +137,13 @@ const AdminBookings = () => {
                 </p>
                 <div className="flex gap-4 pt-4">
                   <button
-                    onClick={() => handleCardAction('View')}
+                    onClick={() => handleCardAction('view', booking)}
                     className="flex-1 rounded-full bg-[#E2E8F0] text-[#0d2440] py-2 font-semibold hover:bg-[#CBD5F5]"
                   >
                     View
                   </button>
                   <button
-                    onClick={() => handleCardAction('Edit')}
+                    onClick={() => handleCardAction('edit', booking)}
                     className="flex-1 rounded-full bg-[#142C3E] text-white py-2 font-semibold hover:bg-[#0f1b2c]"
                   >
                     Edit
@@ -158,4 +158,4 @@ const AdminBookings = () => {
   );
 };
 
-export default AdminBookings;
+export default AdminBooking;

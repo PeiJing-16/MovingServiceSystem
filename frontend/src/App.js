@@ -8,6 +8,7 @@ import UserCreateBooking from './pages/UserCreateBooking';
 import UserManageBooking from './pages/UserManageBooking';
 import AdminBooking from './pages/AdminBooking';
 import AdminAddService from './pages/AdminAddService';
+import AdminServices from './pages/AdminServices';
 
 function App() {
   return (
@@ -23,7 +24,8 @@ function App() {
         <Route path="/bookings/create" element={<UserCreateBooking />} />
         <Route path="/bookings/view/user" element={<UserManageBooking />} />
         <Route path="/admin/bookings" element={<AdminBooking />} />
-        <Route path="/admin/services" element={<AdminAddService />} />
+        <Route path="/admin/services/add" element={<AdminAddService />} />
+        <Route path="/admin/services" element={<AdminServices />} />
       </Routes>
     </Router>
   );

@@ -1,13 +1,28 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 
 const AdminAddService = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ name: '', description: '', price: '' });
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.service) {
+      const service = location.state.service;
+      setForm({
+        name: service.name,
+        description: service.description,
+        price: String(service.price ?? ''),
+      });
+      setEditingId(service._id);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
 
   if (!user?.isAdmin) {
     return (
@@ -35,8 +50,6 @@ const AdminAddService = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    /*Set price cannot be negative or non-numeric.*/
     const numericPrice = Number(form.price);
     if (Number.isNaN(numericPrice) || numericPrice < 0) {
       alert('Price must be zero or a positive value.');
@@ -44,13 +57,24 @@ const AdminAddService = () => {
     }
     setLoading(true);
     try {
-      await axiosInstance.post('/api/services', {
-        name: form.name,
-        description: form.description,
-        price: Number(form.price) || 0,
-      });
-      alert('Service added successfully.');
+      if (editingId) {
+        await axiosInstance.put(`/api/services/${editingId}`, {
+          name: form.name,
+          description: form.description,
+          price: numericPrice,
+        });
+        alert('Service updated successfully.');
+      } else {
+        await axiosInstance.post('/api/services', {
+          name: form.name,
+          description: form.description,
+          price: numericPrice,
+        });
+        alert('Service added successfully.');
+      }
       setForm({ name: '', description: '', price: '' });
+      setEditingId(null);
+      navigate('/admin/services');
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to add service. Please try again.';
       alert(message);
@@ -62,6 +86,12 @@ const AdminAddService = () => {
   return (
     <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6">
       <div className="relative w-full max-w-3xl rounded-3xl bg-white/90 border border-[#c8e1fb] px-8 py-12 shadow-2xl">
+        <img
+          src="/ServiceBg.jpg"
+          alt="illustration"
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover opacity-10"
+        />
         <div className="relative">
           <h1 className="text-4xl font-semibold text-center text-[#0d2440] mb-10">Add Service</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -71,7 +101,7 @@ const AdminAddService = () => {
               placeholder="Service Name"
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-2xl bg-[#C1D8F0] drop-shadow-lg py-3 px-6 text-[#0d2440] focus:outline-none focus:ring-2 focus:ring-[#93A9C0]"
+              className="w-full rounded-2xl bg-[#C1D8F0] drop-shadow-lg py-3 px-6 text-[#0d2440] focus:outline-none focus:ring-2 focus:ring-[#6aa7ff]"
               required
             />
             <textarea
@@ -80,17 +110,18 @@ const AdminAddService = () => {
               value={form.description}
               onChange={handleChange}
               rows={5}
-              className="w-full rounded-2xl bg-[#C1D8F0] drop-shadow-lg py-3 px-6 text-[#0d2440] focus:outline-none focus:ring-2 focus:ring-[#93A9C0]"
+              className="w-full rounded-2xl bg-[#C1D8F0] drop-shadow-lg py-3 px-6 text-[#0d2440] focus:outline-none focus:ring-2 focus:ring-[#6aa7ff]"
               required
             />
             <input
               type="number"
+              step="0.01"
               name="price"
-              step={0.01}
               placeholder="Price"
               value={form.price}
               onChange={handleChange}
-              className="w-full rounded-2xl bg-[#C1D8F0] drop-shadow-lg py-3 px-6 text-[#0d2440] focus:outline-none focus:ring-2 focus:ring-[#93A9C0]"
+              min="0"
+              className="w-full rounded-2xl bg-[#C1D8F0] drop-shadow-lg py-3 px-6 text-[#0d2440] focus:outline-none focus:ring-2 focus:ring-[#6aa7ff]"
               required
             />
             <div className="flex justify-center">
@@ -99,7 +130,7 @@ const AdminAddService = () => {
                 className="w-48 rounded-full bg-[#C1D8F0] text-[#0d2440] font-semibold py-3 hover:bg-[#93A9C0] transition drop-shadow-lg"
                 disabled={loading}
               >
-                {loading ? 'Submitting...' : 'Submit'}
+                {loading ? 'Saving...' : editingId ? 'Update Service' : 'Submit'}
               </button>
             </div>
           </form>

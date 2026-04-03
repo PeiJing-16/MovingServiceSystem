@@ -53,4 +53,13 @@ const deleteBooking = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, getBookings, updateBooking, deleteBooking };
+const getAllBookingsAdmin = async (req, res) => {
+  try {
+    const bookings = await Booking.find().populate('user', 'name email phone');
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createBooking, getBookings, updateBooking, deleteBooking, getAllBookingsAdmin };

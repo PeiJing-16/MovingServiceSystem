@@ -31,7 +31,9 @@ const AdminBookings = () => {
       if (!user?.isAdmin) return;
       setLoading(true);
       try {
-        const response = await axiosInstance.get('/api/bookings/admin/all');
+        const response = await axiosInstance.get('/api/bookings/admin/all', {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
         setBookings(response.data);
       } catch (error) {
         alert('Failed to load bookings for admin.');

@@ -15,7 +15,7 @@ const AdminLogin = () => {
       const response = await axiosInstance.post('/api/admin/login', form);
       login({ ...response.data, isAdmin: true });
       setError('');
-      navigate('/tasks');
+      navigate('/admin/bookings');
     } catch (err) {
       const message = err.response?.data?.message || 'Invalid admin username or password';
       setError(message);

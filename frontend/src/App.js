@@ -6,7 +6,7 @@ import Profile from './pages/Profile';
 import Tasks from './pages/Tasks';
 import UserCreateBooking from './pages/UserCreateBooking';
 import UserManageBooking from './pages/UserManageBooking';
-import AdminBookings from './pages/AdminBooking';
+import AdminBooking from './pages/AdminBooking';
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/bookings/create" element={<UserCreateBooking />} />
         <Route path="/bookings/view/user" element={<UserManageBooking />} />
-        <Route path="/admin/bookings" element={<AdminBookings />} />
+        <Route path="/admin/bookings" element={<AdminBooking />} />
       </Routes>
     </Router>
   );

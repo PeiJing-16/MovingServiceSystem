@@ -9,6 +9,7 @@ import UserManageBooking from './pages/UserManageBooking';
 import AdminBooking from './pages/AdminBooking';
 import AdminAddService from './pages/AdminAddService';
 import AdminServices from './pages/AdminServices';
+import AdminStaff from './pages/AdminStaff';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/admin/bookings" element={<AdminBooking />} />
         <Route path="/admin/services/add" element={<AdminAddService />} />
         <Route path="/admin/services" element={<AdminServices />} />
+        <Route path="/admin/staff" element={<AdminStaff />} />
       </Routes>
     </Router>
   );

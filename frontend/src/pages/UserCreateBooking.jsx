@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 
@@ -21,10 +22,31 @@ const initialState = {
   remarks: '',
 };
 
+/*Form for create booking and update booking details*/
 const UserCreateBooking = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.booking) {
+      const booking = location.state.booking;
+      setFormData({
+        serviceType: booking.serviceType,
+        propertyType: booking.propertyType,
+        pickupAddress: booking.pickupAddress,
+        destinationAddress: booking.destinationAddress,
+        date: booking.date ? booking.date.slice(0, 10) : '',
+        time: booking.time || '',
+        remarks: booking.remarks || '',
+      });
+      setEditingId(booking._id);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
 
   if (!user) {
     return <div className="text-center mt-20">Please log in to create a booking.</div>;
@@ -39,13 +61,22 @@ const UserCreateBooking = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axiosInstance.post('/api/bookings', formData, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      alert('Booking submitted! We will email a confirmation shortly.');
+      if (editingId) {
+        await axiosInstance.put(`/api/bookings/${editingId}`, formData, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        alert('Booking updated successfully.');
+      } else {
+        await axiosInstance.post('/api/bookings', formData, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        alert('We have received your booking request. We will email you shortly with a quote.');
+      }
       setFormData(initialState);
+      setEditingId(null);
+      navigate('/bookings/view/user');
     } catch (error) {
-      alert('Failed to submit booking. Please try again.');
+      alert('Failed to save booking. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -142,7 +173,7 @@ const UserCreateBooking = () => {
                 className="w-48 rounded-full bg-[#C1D8F0] text-black font-semibold py-3 hover:bg-[#93A9C0] transition drop-shadow-lg"
                 disabled={loading}
               >
-                {loading ? 'Submitting...' : 'Submit'}
+                {loading ? 'Saving...' : editingId ? 'Update Booking' : 'Submit'}
               </button>
             </div>
           </form>

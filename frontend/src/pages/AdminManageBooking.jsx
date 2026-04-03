@@ -9,13 +9,26 @@ const decisionOptions = [
   { label: 'Cancel Booking', value: 'cancelled' },
 ];
 
+const extractAssignedStaffIds = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => (typeof entry === 'string' ? entry : entry?._id))
+      .filter(Boolean);
+  }
+  if (typeof value === 'object') {
+    return value?._id ? [value._id] : [];
+  }
+  return value ? [value] : [];
+};
+
 const AdminManageBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const booking = location.state?.booking;
   const [staffOptions, setStaffOptions] = useState([]);
-  const [assignedStaff, setAssignedStaff] = useState('');
+  const [assignedStaff, setAssignedStaff] = useState([]);
   const [statusDecision, setStatusDecision] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -23,7 +36,7 @@ const AdminManageBooking = () => {
     if (!booking) {
       navigate('/admin/bookings');
     } else {
-      setAssignedStaff(booking.assignedStaff || '');
+      setAssignedStaff(extractAssignedStaffIds(booking.assignedStaff));
     }
   }, [booking, navigate]);
 
@@ -69,7 +82,7 @@ const AdminManageBooking = () => {
     setSaving(true);
     try {
       await axiosInstance.put(`/api/bookings/admin/${booking._id}`, {
-        assignedStaff: assignedStaff || null,
+        assignedStaff,
         status: statusDecision || booking.status,
       });
       alert('Booking updated successfully.');
@@ -83,6 +96,13 @@ const AdminManageBooking = () => {
   };
 
   const bookingIdDisplay = booking._id.slice(-5).toUpperCase();
+
+  const handleStaffChange = (event) => {
+    const selected = Array.from(event.target.selectedOptions)
+      .map((option) => option.value)
+      .filter(Boolean);
+    setAssignedStaff(selected);
+  };
 
   return (
     <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6">
@@ -115,18 +135,23 @@ const AdminManageBooking = () => {
               rows={3}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <select
-                value={assignedStaff || ''}
-                onChange={(e) => setAssignedStaff(e.target.value)}
-                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
-              >
-                <option value="">Assign Staff</option>
-                {staffOptions.map((staff) => (
-                  <option key={staff._id} value={staff._id}>
-                    {staff.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-col gap-2">
+                <select
+                  multiple
+                  value={assignedStaff}
+                  onChange={handleStaffChange}
+                  className="rounded-2xl bg-[#C1D8F0] py-3 px-6 h-40"
+                >
+                  {staffOptions.map((staff) => (
+                    <option key={staff._id} value={staff._id}>
+                      {staff.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-sm text-[#0d2440]">
+                  Hold Ctrl/Cmd to select multiple staff members. Leave empty to keep unassigned.
+                </p>
+              </div>
               <select
                 value={statusDecision}
                 onChange={(e) => setStatusDecision(e.target.value)}

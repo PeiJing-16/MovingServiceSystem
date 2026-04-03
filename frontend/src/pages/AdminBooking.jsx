@@ -19,6 +19,24 @@ const formatDate = (value) => {
 
 const formatTime = (value) => value || '—';
 
+const formatStaffList = (assignedStaff) => {
+  if (!assignedStaff || (Array.isArray(assignedStaff) && assignedStaff.length === 0)) {
+    return 'Unassigned';
+  }
+  const staffArray = Array.isArray(assignedStaff) ? assignedStaff : [assignedStaff];
+  const formatted = staffArray
+    .filter(Boolean)
+    .map((staff) => {
+      if (typeof staff === 'string') {
+        return staff;
+      }
+      const name = staff?.name || 'Unnamed';
+      return staff?.role ? `${name} (${staff.role})` : name;
+    })
+    .join(', ');
+  return formatted || 'Unassigned';
+};
+
 const AdminBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -130,21 +148,28 @@ const AdminBooking = () => {
                   <span className="font-semibold">Status:</span> {booking.status}
                 </p>
                 <p className="text-[#0d2440]">
+                  <span className="font-semibold">Remarks:</span> {booking.remarks || '—'}
+                </p>
+                <p className="text-[#0d2440]">
+                  <span className="font-semibold">Assigned Staff:</span> {formatStaffList(booking.assignedStaff)}
+                </p>
+                <p className="text-[#0d2440]">
                   <span className="font-semibold">Client:</span> {booking.user?.name || 'Unknown'}
                 </p>
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Contact:</span> {booking.user?.email || '—'}
                 </p>
                 <div className="flex gap-4 pt-4">
-                  <button
-                    onClick={() => handleCardAction('view', booking)}
-                    className="flex-1 rounded-full bg-[#E2E8F0] text-[#0d2440] py-2 font-semibold hover:bg-[#CBD5F5]"
-                  >
-                    View
-                  </button>
+                
                   <button
                     onClick={() => handleCardAction('edit', booking)}
-                    className="flex-1 rounded-full bg-[#142C3E] text-white py-2 font-semibold hover:bg-[#0f1b2c]"
+                    disabled={['completed', 'cancelled'].includes(booking.status)}
+                    className={[
+                      'flex-1 rounded-full py-2 font-semibold transition',
+                      ['completed', 'cancelled'].includes(booking.status)
+                        ? 'bg-gray-400 text-white cursor-not-allowed opacity-70'
+                        : 'bg-[#142C3E] text-white hover:bg-[#0f1b2c]'
+                    ].join(' ')}
                   >
                     Edit
                   </button>

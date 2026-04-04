@@ -1,7 +1,8 @@
 const Booking = require('../models/Booking');
 
+/* Normalize assigned staff input into a consistent array format */
 const normalizeAssignedStaff = (value) => {
-  if (value === undefined) return undefined;
+  if (value === undefined) return undefined; // No change if not provided
   if (value === null) return [];
   if (Array.isArray(value)) {
     return value.filter(Boolean);
@@ -30,6 +31,7 @@ const getBookings = async (req, res) => {
   }
 };
 
+/* Users can update their own bookings' details, but cannot change assigned staff or status */
 const updateBooking = async (req, res) => {
   try {
     const booking = await Booking.findOne({ _id: req.params.id, user: req.user.id });
@@ -44,10 +46,6 @@ const updateBooking = async (req, res) => {
     booking.date = req.body.date ?? booking.date;
     booking.time = req.body.time ?? booking.time;
     booking.remarks = req.body.remarks ?? booking.remarks;
-    const normalizedAssignedStaff = normalizeAssignedStaff(req.body.assignedStaff);
-    if (normalizedAssignedStaff !== undefined) {
-      booking.assignedStaff = normalizedAssignedStaff;
-    }
     booking.status = req.body.status ?? booking.status;
 
     const updated = await booking.save();
@@ -80,6 +78,7 @@ const getAllBookingsAdmin = async (_req, res) => {
   }
 };
 
+/* Admin can update any booking's status, assigned staff, and remarks */
 const adminUpdateBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);

@@ -11,6 +11,7 @@ const AdminAddService = () => {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
+  /* If a service is passed through navogation state, load it into the form for edting*/
   useEffect(() => {
     if (location.state?.service) {
       const service = location.state.service;
@@ -24,6 +25,7 @@ const AdminAddService = () => {
     }
   }, [location, navigate]);
 
+  /* Restrict this page for admin only */
   if (!user?.isAdmin) {
     return (
       <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6 text-center">
@@ -43,11 +45,13 @@ const AdminAddService = () => {
     );
   }
 
+  /* Update form state whenever the admin types into a input field */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // submit the form and decide whether to create a new service or update an existing one based on the presence of editingId
   const handleSubmit = async (e) => {
     e.preventDefault();
     const numericPrice = Number(form.price);
@@ -72,6 +76,8 @@ const AdminAddService = () => {
         });
         alert('Service added successfully.');
       }
+
+      // reset form and return to service list page after saving
       setForm({ name: '', description: '', price: '' });
       setEditingId(null);
       navigate('/admin/services');

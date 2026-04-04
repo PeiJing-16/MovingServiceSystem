@@ -1,4 +1,4 @@
-
+/* Controller for user authentication and profile management */
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');

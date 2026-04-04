@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 
+// User profile page where users can view and edit their profile information, as well as delete their account
 const Profile = () => {
   const { user, logout } = useAuth(); // Access user token from context
   const navigate = useNavigate();
@@ -58,6 +59,7 @@ const Profile = () => {
     const confirmed = window.confirm('Are you sure you want to delete your account? All your data will be permanently removed.');
     if (!confirmed) return;
 
+    
     setDeleting(true);
     try {
       await axiosInstance.delete('/api/auth/profile', {

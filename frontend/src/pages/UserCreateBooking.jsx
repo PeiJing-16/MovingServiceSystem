@@ -5,6 +5,7 @@ import axiosInstance from '../axiosConfig';
 
 const propertyTypes = ['Apartment', 'Townhouse', 'Detached House', 'Office', 'Other'];
 
+// Default form state for creating a new booking and reset after submission successfully
 const initialState = {
   serviceType: '',
   propertyType: propertyTypes[0],
@@ -22,9 +23,11 @@ const UserCreateBooking = () => {
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  // laoded services for dropdown
   const [serviceOptions, setServiceOptions] = useState([]);
   const [serviceLoading, setServiceLoading] = useState(true);
 
+  // check if the booking data is passed from the booking list pgae
   useEffect(() => {
     if (location.state?.booking) {
       const booking = location.state.booking;
@@ -42,6 +45,7 @@ const UserCreateBooking = () => {
     }
   }, [location, navigate]);
 
+  // fetch services for dropdown, if editing, also set the default service type to the one in the booking data
   useEffect(() => {
     const fetchServices = async () => {
       setServiceLoading(true);
@@ -64,6 +68,7 @@ const UserCreateBooking = () => {
     fetchServices();
   }, [editingId]);
 
+  // if user is not logged in, show a message instead of the form
   if (!user) {
     return <div className="text-center mt-20">Please log in to create a booking.</div>;
   }

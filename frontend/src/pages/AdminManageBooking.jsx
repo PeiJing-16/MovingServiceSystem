@@ -9,6 +9,7 @@ const decisionOptions = [
   { label: 'Cancel Booking', value: 'cancelled' },
 ];
 
+// to extract assigned staff id from the booking data
 const extractAssignedStaffIds = (value) => {
   if (!value) return [];
   if (Array.isArray(value)) {
@@ -97,6 +98,8 @@ const AdminManageBooking = () => {
 
   const bookingIdDisplay = booking._id.slice(-5).toUpperCase();
 
+
+  // format assigned staff for display in the booking
   const handleStaffChange = (event) => {
     const selected = Array.from(event.target.selectedOptions)
       .map((option) => option.value)

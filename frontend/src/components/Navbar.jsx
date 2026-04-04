@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/* Navbar component that displays different links based on user authentication and role */
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();

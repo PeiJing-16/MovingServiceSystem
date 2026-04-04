@@ -33,6 +33,9 @@ jobs:
           echo "Secret 2 is: $JWT_SECRET"
           echo "Secret 3 is: $PORT"
 
+      - name: Install PM2
+        run: npm install -g pm2
+
       - name: Stop PM2 Services
         run: pm2 stop all
 
@@ -67,9 +70,6 @@ jobs:
           cd ./backend
           touch .env
           echo "${{ secrets.PROD }}" > .env
-
-      - name: Install PM2
-        run: npm install -g pm2
 
       - name: Start PM2 Services
         run: pm2 start all

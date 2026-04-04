@@ -10,6 +10,7 @@ const extractToken = (req) => {
   return null;
 };
 
+/* Middleware to protect routes and ensure the user is authenticated */
 const protect = async (req, res, next) => {
   const token = extractToken(req);
   if (!token) {
@@ -27,6 +28,7 @@ const protect = async (req, res, next) => {
   }
 };
 
+/ * Middleware to protect admin routes and ensure the user has admin privileges */
 const adminProtect = async (req, res, next) => {
   const token = extractToken(req);
   if (!token) {

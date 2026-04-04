@@ -27,6 +27,7 @@ const UserManageBooking = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [loading, setLoading] = useState(true);
 
+  // Fetch user's bookings on component mount
   useEffect(() => {
     const fetchBookings = async () => {
       if (!user) return;
@@ -46,6 +47,7 @@ const UserManageBooking = () => {
     fetchBookings();
   }, [user]);
 
+  // Filter bookings based on active tab
   const filteredBookings = useMemo(
     () => bookings.filter((booking) => statusMatchesTab(booking, activeTab)),
     [bookings, activeTab]

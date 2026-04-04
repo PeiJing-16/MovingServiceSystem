@@ -15,6 +15,7 @@ const AdminAddStaff = () => {
   const [bookingOptions, setBookingOptions] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
 
+  // if the staff is passed through navigation state, load the staff data into the form for editing
   useEffect(() => {
     if (location.state?.staff) {
       const staff = location.state.staff;
@@ -30,6 +31,7 @@ const AdminAddStaff = () => {
     }
   }, [location, navigate]);
 
+  // fetch all bookings for the dropdown options
   useEffect(() => {
     const fetchBookings = async () => {
       if (!user?.isAdmin) return;

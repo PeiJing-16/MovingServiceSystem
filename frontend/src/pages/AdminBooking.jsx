@@ -12,6 +12,7 @@ const ADMIN_TABS = [
 
 const statusMatches = (booking, tab) => booking.status === tab;
 
+// Helper functions to format booking details for display
 const formatDate = (value) => {
   if (!value) return '—';
   return new Date(value).toLocaleDateString();
@@ -87,6 +88,7 @@ const AdminBooking = () => {
     );
   }
 
+  // Handle actions from the booking cards, currently only edit which navigates to the booking management page with the booking data in state
   const handleCardAction = (type, booking) => {
     if (type === 'edit') {
       navigate('/admin/bookings/manage', { state: { booking } });

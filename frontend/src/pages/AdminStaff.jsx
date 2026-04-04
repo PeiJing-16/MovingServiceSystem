@@ -9,6 +9,7 @@ const AdminStaff = () => {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // fetch all staff members when the component mounts
   useEffect(() => {
     const fetchStaff = async () => {
       if (!user?.isAdmin) return;
@@ -36,6 +37,7 @@ const AdminStaff = () => {
     }
   };
 
+  // if the user is not an admin, show an access denied message
   if (!user?.isAdmin) {
     return (
       <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6 text-center">

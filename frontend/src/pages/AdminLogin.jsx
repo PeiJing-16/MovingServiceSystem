@@ -9,6 +9,7 @@ const AdminLogin = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // submit the login form and authenticate the admin user
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {

@@ -68,6 +68,9 @@ jobs:
           touch .env
           echo "${{ secrets.PROD }}" > .env
 
+      - name: Install PM2
+        run: npm install -g pm2
+
       - name: Start PM2 Services
         run: pm2 start all
 

@@ -54,40 +54,16 @@ The Moving Service Scheduler System is designed to simplify the process of sched
 ## Project Structure
 
 MovingServiceScheduler/
-│
 ├── backend/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── test/
-│   ├── .env
-│   ├── package.json
-│   └── server.js
-│
 ├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   ├── App.js
-│   │   └── axiosConfig.jsx
-│   ├── package.json
-│   └── build/
-│
 ├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
 ├── package.json
 └── README.md
 
 ## Setup Instructions
 
 ### Clone Repository
- - git clone <https://github.com/PeiJing-16/MovingServiceScheduler.git>
+ - git clone <https://github.com/PeiJing-16/MovingServiceSystem.git>
  - cd MovingServiceScheduler
 
  ### Install Dependencies

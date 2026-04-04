@@ -46,7 +46,7 @@ const Navbar = () => {
               <Link to="/bookings/create" className="mr-2 font-medium">
                 Get Quote
               </Link>
-              <Link to="/bookings/view/user" className="mr-2 font-medium">
+              <Link to="/bookings/manage" className="mr-2 font-medium">
                 View Bookings
               </Link>
               <button

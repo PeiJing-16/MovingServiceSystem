@@ -1,4 +1,4 @@
-# Getting start with Moving Service Scheduler System
+# Getting start with Moving Service Scheduler System - Shane was here
 
 This system is a full-stack CRUD web application developed for IFN636 Assessment 1.2. The system provide the users to book and manage moving services, while allowing admin to manage bookings, services, staff, and related operations. The project is built using React.js, Node.js, Express.js, and MongoDB, with GitHub Actions used for CI/CD and deployment support.
 

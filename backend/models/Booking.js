@@ -13,7 +13,8 @@ const bookingSchema = new mongoose.Schema(
     assignedStaff: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Staff' }],
       default: [],
-    },
+        },
+    amount: {type: Number, default: 0},
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'completed', 'cancelled'],

@@ -64,11 +64,25 @@ const updateUserProfile = async (req, res) => {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const { name, email, address, phone } = req.body;
+        const { name, email, address, phone, currentPassword, newPassword } = req.body;
         user.name = name || user.name;
         user.email = email || user.email;
         user.address = address || user.address;
         user.phone = phone || user.phone;
+
+        if (newPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({message: 'Current password is required'});
+            }
+
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+            if (!isMatch) {
+                return res.status(400).json({message: "Current password is incorrect"});
+            }
+
+            user.password = newPassword;
+        }
 
         const updatedUser = await user.save();
         res.json({

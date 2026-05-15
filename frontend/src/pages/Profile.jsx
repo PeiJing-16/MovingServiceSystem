@@ -12,6 +12,9 @@ const Profile = () => {
     email: '',
     address: '',
     phone: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -29,6 +32,9 @@ const Profile = () => {
           email: response.data.email,
           address: response.data.address || '',
           phone: response.data.phone || '',
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
         });
       } catch (error) {
         alert('Failed to fetch profile. Please try again.');
@@ -42,14 +48,41 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.newPassword || formData.currentPassword || formData.confirmPassword) {
+      if (!formData.currentPassword) {
+        alert('Please enter your current password');
+        return;
+      }
+
+      if (!formData.newPassword) {
+        alert('Please enter your new password');
+        return;
+      }
+
+      if (formData.newPassword !== formData.confirmPassword) {
+        alert('New password and confirm password not match');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       await axiosInstance.put('/api/auth/profile', formData, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       alert('Profile updated successfully!');
+
+      setFormData({
+            ...formData,
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+        });
+
     } catch (error) {
-      alert('Failed to update profile. Please try again.');
+      const message = error.response?.data?.message || 'Failed to update profile. Plaase try again';
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -120,6 +153,27 @@ const Profile = () => {
               placeholder="Phone"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full p-3 rounded-xl bg-[#C1D8F0] drop-shadow-lg border-2 border-[#C1D8F0] focus:outline-none focus:border-[#93A9C0]"
+              />
+            <input
+              type="password"
+              placeholder="Current Password"
+              value={formData.currentPassword}
+              onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+              className="w-full p-3 rounded-xl bg-[#C1D8F0] drop-shadow-lg border-2 border-[#C1D8F0] focus:outline-none focus:border-[#93A9C0]"
+              />
+            <input
+              type="password"
+              placeholder="New Password"
+              value={formData.newPassword}
+              onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+              className="w-full p-3 rounded-xl bg-[#C1D8F0] drop-shadow-lg border-2 border-[#C1D8F0] focus:outline-none focus:border-[#93A9C0]"
+              />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               className="w-full p-3 rounded-xl bg-[#C1D8F0] drop-shadow-lg border-2 border-[#C1D8F0] focus:outline-none focus:border-[#93A9C0]"
               />
             <div className="flex justify-center mt-6">

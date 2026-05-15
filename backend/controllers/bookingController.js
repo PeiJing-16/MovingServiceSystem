@@ -133,7 +133,7 @@ const updateBooking = async (req, res) => {
 
 const deleteBooking = async (req, res) => {
   try {
-    const booking = await Booking.findOneAndDelete({
+    const booking = await Booking.findOne({
       _id: req.params.id,
       user: req.user.id,
     });

@@ -198,6 +198,7 @@ describe('bookingController', () => {
                 remarks: 'None',
                 inventoryItems: [],
                 customItems: [],
+                status: 'pending',
                 save: sinon.stub().resolves({
                     _id: bookingId,
                 }),
@@ -394,18 +395,24 @@ describe('bookingController', () => {
 
     describe('deleteBooking', () => {
         it('should delete booking and confirm removal', async () => {
+
+            const bookingId = new mongoose.Types.ObjectId().toString();
+            const userId = new mongoose.Types.ObjectId().toString();
+
             const fakeBooking = {
-                _id: 'booking999',
-                user: 'user999',
+                _id: bookingId,
+                user: userId,
+                status: 'pending',
+                deleteOne: sinon.stub().resolves(),
             };
 
-            const findOneAndDeleteStub = sinon
-                .stub(Booking, 'findOneAndDelete')
+            const findOneStub = sinon
+                .stub(Booking, 'findOne')
                 .resolves(fakeBooking);
 
             const req = {
-                params: { id: 'booking999' },
-                user: { id: 'user999' },
+                params: { id: bookingId },
+                user: { id: userId },
             };
 
             const res = {
@@ -416,24 +423,28 @@ describe('bookingController', () => {
             await deleteBooking(req, res);
 
             expect(
-                findOneAndDeleteStub.calledOnceWithExactly({
-                    _id: 'booking999',
-                    user: 'user999',
+                findOneStub.calledOnceWithExactly({
+                    _id: bookingId,
+                    user: userId,
                 })
             ).to.be.true;
-            expect(res.json.calledOnceWithExactly({ message: 'Booking removed' })).to.be
-                .true;
+
+            expect(fakeBooking.deleteOne.calledOnce).to.be.true;
+            expect(res.json.calledOnceWithExactly({ message: 'Booking removed' })).to.be.true;
         });
 
-        it('should return 500 when Booking.findOneAndDelete rejects', async () => {
+        it('should return 500 when Booking.findOne rejects', async () => {
             sinon
-                .stub(Booking, 'findOneAndDelete')
+                .stub(Booking, 'findOne')
                 .rejects(new Error('DB Error'));
 
+            const bookingId = new mongoose.Types.ObjectId().toString();
+            const userId = new mongoose.Types.ObjectId().toString();
+
             const req = {
-                params: { id: 'oops' },
-                user: { id: 'userOops' },
-            };
+                params: {id:bookingId},
+                user: {id:userId}
+            }
 
             const res = {
                 status: sinon.stub().returnsThis(),
@@ -443,7 +454,8 @@ describe('bookingController', () => {
             await deleteBooking(req, res);
 
             expect(res.status.calledOnceWithExactly(500)).to.be.true;
-            expect(res.json.calledOnceWithExactly({ message: 'DB Error' })).to.be.true;
+            expect(res.json.calledOnce).to.be.true;
+            expect(res.json.firstCall.args[0]).to.deep.equal({ message: 'DB Error' });
         });
     });
 });

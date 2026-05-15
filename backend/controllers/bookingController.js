@@ -1,4 +1,5 @@
 const Booking = require('../models/Booking');
+const BookingStatusContext = require('../services/BookingStatusStrategy')
 
 const normalizeAssignedStaff = (value) => {
   if (value === undefined) return undefined;
@@ -91,6 +92,15 @@ const updateBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    // controller asks the BookingStatusContext to know the current booking status is that able to update
+    const statusContext = new BookingStatusContext(booking.status);
+
+    if (!statusContext.canUserUpdate()) {
+      return res.status(400).json({
+        message: "Only pending bookings can be updated.",
+      });
+    }
+
     booking.serviceType = req.body.serviceType ?? booking.serviceType;
     booking.propertyType = req.body.propertyType ?? booking.propertyType;
     booking.pickupAddress = req.body.pickupAddress ?? booking.pickupAddress;
@@ -131,6 +141,17 @@ const deleteBooking = async (req, res) => {
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
+
+    // controller asks the BookingStatusContext to know the current booking status is that able to delete
+    const statusContext = new BookingStatusContext(booking.status);
+
+    if (!statusContext.canUserCancel()) {
+      return res.status(400).json({
+        message: "Only pending bookings can be canceled.",
+      });
+    }
+
+    await booking.deleteOne();
 
     res.json({ message: 'Booking removed' });
   } catch (error) {

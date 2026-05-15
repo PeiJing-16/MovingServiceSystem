@@ -47,8 +47,8 @@ const UserCreateBooking = () => {
         remarks: booking.remarks || '',
         inventoryItems: Array.isArray(booking.inventoryItems)
           ? booking.inventoryItems.map((item) =>
-              typeof item === 'string' ? item : item._id
-            )
+            typeof item === 'string' ? item : item._id
+          )
           : [],
         customItems: booking.customItems || [],
       });
@@ -171,7 +171,12 @@ const UserCreateBooking = () => {
       setCustomItemInput('');
       setEditingId(null);
     } catch (error) {
-      alert('Failed to save booking. Please try again.');
+      console.error('Booking save error:', error.response?.data || error.message);
+
+      alert(
+        error.response?.data?.message ||
+        'Failed to save booking. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

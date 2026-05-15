@@ -24,23 +24,41 @@ const formatStaffList = (assignedStaff) => {
   if (!assignedStaff || (Array.isArray(assignedStaff) && assignedStaff.length === 0)) {
     return 'Unassigned';
   }
+
   const staffArray = Array.isArray(assignedStaff) ? assignedStaff : [assignedStaff];
+
   const formatted = staffArray
     .filter(Boolean)
     .map((staff) => {
       if (typeof staff === 'string') {
         return staff;
       }
+
       const name = staff?.name || 'Unnamed';
       return staff?.role ? `${name} (${staff.role})` : name;
     })
     .join(', ');
+
   return formatted || 'Unassigned';
+};
+
+const formatInventoryItems = (booking) => {
+  const listedItems =
+    booking.inventoryItems?.map((item) =>
+      typeof item === 'string' ? item : item.itemName
+    ) || [];
+
+  const customItems = booking.customItems || [];
+
+  const allItems = [...listedItems, ...customItems];
+
+  return allItems.length > 0 ? allItems.join(', ') : 'No items selected';
 };
 
 const AdminBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [bookings, setBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
   const [loading, setLoading] = useState(true);
@@ -48,7 +66,9 @@ const AdminBooking = () => {
   useEffect(() => {
     const fetchAllBookings = async () => {
       if (!user?.isAdmin) return;
+
       setLoading(true);
+
       try {
         const response = await axiosInstance.get('/api/bookings/admin/all');
         setBookings(response.data);
@@ -66,6 +86,7 @@ const AdminBooking = () => {
     if (!user?.isAdmin) {
       return [];
     }
+
     return bookings.filter((booking) => statusMatches(booking, activeTab));
   }, [bookings, activeTab, user]);
 
@@ -74,9 +95,11 @@ const AdminBooking = () => {
       <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6 text-center">
         <div className="bg-white/90 rounded-2xl shadow-xl p-10 max-w-lg">
           <h1 className="text-2xl font-semibold text-[#0d2440] mb-4">Admin Only</h1>
+
           <p className="text-[#546b86] mb-6">
             This page is restricted to admin accounts. Please log in with admin credentials.
           </p>
+
           <button
             onClick={() => navigate('/admin')}
             className="px-6 py-3 rounded-full bg-[#142C3E] text-white font-semibold hover:bg-[#0f1b2c]"
@@ -121,48 +144,66 @@ const AdminBooking = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
             {filteredBookings.map((booking) => (
-              <div key={booking._id} className="bg-white rounded-3xl shadow-lg border border-[#c8e1fb] p-6 space-y-2">
+              <div
+                key={booking._id}
+                className="bg-white rounded-3xl shadow-lg border border-[#c8e1fb] p-6 space-y-2"
+              >
                 <p className="text-sm text-[#546b86] font-semibold">
                   Booking ID:{' '}
                   <span className="text-[#0d2440]">
                     {booking._id.slice(-5).toUpperCase()}
                   </span>
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Pick up Address:</span> {booking.pickupAddress}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Destination Address:</span> {booking.destinationAddress}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Service Type:</span> {booking.serviceType}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Property Type:</span> {booking.propertyType}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Date:</span> {formatDate(booking.date)}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Time:</span> {formatTime(booking.time)}
                 </p>
+
+                <p className="text-[#0d2440]">
+                  <span className="font-semibold">Inventory Items:</span> {formatInventoryItems(booking)}
+                </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Status:</span> {booking.status}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Remarks:</span> {booking.remarks || '—'}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Assigned Staff:</span> {formatStaffList(booking.assignedStaff)}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Client:</span> {booking.user?.name || 'Unknown'}
                 </p>
+
                 <p className="text-[#0d2440]">
                   <span className="font-semibold">Contact:</span> {booking.user?.email || '—'}
                 </p>
+
                 <div className="flex gap-4 pt-4">
-                
                   <button
                     onClick={() => handleCardAction('edit', booking)}
                     disabled={['completed', 'cancelled'].includes(booking.status)}
@@ -170,7 +211,7 @@ const AdminBooking = () => {
                       'flex-1 rounded-full py-2 font-semibold transition',
                       ['completed', 'cancelled'].includes(booking.status)
                         ? 'bg-gray-400 text-white cursor-not-allowed opacity-70'
-                        : 'bg-[#142C3E] text-white hover:bg-[#0f1b2c]'
+                        : 'bg-[#142C3E] text-white hover:bg-[#0f1b2c]',
                     ].join(' ')}
                   >
                     Edit

@@ -7,27 +7,45 @@ const decisionOptions = [
   { label: 'Keep Pending', value: '' },
   { label: 'Accept Booking', value: 'confirmed' },
   { label: 'Cancel Booking', value: 'cancelled' },
+  { label: 'Mark as Completed', value: 'completed' },
 ];
 
-// to extract assigned staff id from the booking data
 const extractAssignedStaffIds = (value) => {
   if (!value) return [];
+
   if (Array.isArray(value)) {
     return value
       .map((entry) => (typeof entry === 'string' ? entry : entry?._id))
       .filter(Boolean);
   }
+
   if (typeof value === 'object') {
     return value?._id ? [value._id] : [];
   }
+
   return value ? [value] : [];
+};
+
+const formatInventoryItems = (booking) => {
+  const listedItems =
+    booking.inventoryItems?.map((item) =>
+      typeof item === 'string' ? item : item.itemName
+    ) || [];
+
+  const customItems = booking.customItems || [];
+
+  const allItems = [...listedItems, ...customItems];
+
+  return allItems.length > 0 ? allItems.join(', ') : 'No items selected';
 };
 
 const AdminManageBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   const booking = location.state?.booking;
+
   const [staffOptions, setStaffOptions] = useState([]);
   const [assignedStaff, setAssignedStaff] = useState([]);
   const [statusDecision, setStatusDecision] = useState('');
@@ -44,6 +62,7 @@ const AdminManageBooking = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       if (!user?.isAdmin) return;
+
       try {
         const response = await axiosInstance.get('/api/staff');
         setStaffOptions(response.data);
@@ -59,7 +78,9 @@ const AdminManageBooking = () => {
     return (
       <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6 text-center">
         <div className="bg-white/90 rounded-2xl shadow-xl p-10 max-w-lg">
-          <h1 className="text-2xl font-semibold text-[#0d2440] mb-4">Admin Only</h1>
+          <h1 className="text-2xl font-semibold text-[#0d2440] mb-4">
+            Admin Only
+          </h1>
           <p className="text-[#546b86] mb-6">
             This page is restricted to admin accounts. Please log in with admin credentials.
           </p>
@@ -81,31 +102,33 @@ const AdminManageBooking = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+
     try {
       await axiosInstance.put(`/api/bookings/admin/${booking._id}`, {
         assignedStaff,
         status: statusDecision || booking.status,
       });
+
       alert('Booking updated successfully.');
       navigate('/admin/bookings');
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to update booking. Please try again.';
+      const message =
+        error.response?.data?.message || 'Failed to update booking. Please try again.';
       alert(message);
     } finally {
       setSaving(false);
     }
   };
 
-  const bookingIdDisplay = booking._id.slice(-5).toUpperCase();
-
-
-  // format assigned staff for display in the booking
   const handleStaffChange = (event) => {
     const selected = Array.from(event.target.selectedOptions)
       .map((option) => option.value)
       .filter(Boolean);
+
     setAssignedStaff(selected);
   };
+
+  const bookingIdDisplay = booking._id.slice(-5).toUpperCase();
 
   return (
     <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6">
@@ -116,27 +139,77 @@ const AdminManageBooking = () => {
           aria-hidden="true"
           className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover opacity-10"
         />
+
         <div className="relative space-y-6">
           <h1 className="text-4xl font-semibold text-center text-[#0d2440]">
             Booking ID: {bookingIdDisplay}
           </h1>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input value={booking.user?.name || 'Unknown'} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={booking.user?.phone || '—'} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={booking.pickupAddress} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={booking.destinationAddress} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={booking.serviceType} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={booking.propertyType} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={new Date(booking.date).toLocaleDateString()} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
-              <input value={booking.time || '—'} readOnly className="rounded-2xl bg-[#C1D8F0] py-3 px-6" />
+              <input
+                value={booking.user?.name || 'Unknown'}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={booking.user?.phone || '—'}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={booking.pickupAddress}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={booking.destinationAddress}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={booking.serviceType}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={booking.propertyType}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={new Date(booking.date).toLocaleDateString()}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
+
+              <input
+                value={booking.time || '—'}
+                readOnly
+                className="rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              />
             </div>
+
+            <div className="rounded-2xl bg-[#C1D8F0] py-3 px-6">
+              <p className="font-semibold text-[#0d2440] mb-1">
+                Inventory Items
+              </p>
+              <p>{formatInventoryItems(booking)}</p>
+            </div>
+
             <textarea
               value={booking.remarks || '—'}
               readOnly
               className="w-full rounded-2xl bg-[#C1D8F0] py-3 px-6"
               rows={3}
             />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="flex flex-col gap-2">
                 <select
@@ -151,10 +224,12 @@ const AdminManageBooking = () => {
                     </option>
                   ))}
                 </select>
+
                 <p className="text-sm text-[#0d2440]">
                   Hold Ctrl/Cmd to select multiple staff members. Leave empty to keep unassigned.
                 </p>
               </div>
+
               <select
                 value={statusDecision}
                 onChange={(e) => setStatusDecision(e.target.value)}
@@ -167,6 +242,7 @@ const AdminManageBooking = () => {
                 ))}
               </select>
             </div>
+
             <div className="flex justify-center pt-4">
               <button
                 type="submit"

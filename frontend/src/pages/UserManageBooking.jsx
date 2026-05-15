@@ -20,22 +20,38 @@ const formatDate = (value) => {
   return new Date(value).toLocaleDateString();
 };
 
+const formatInventoryItems = (booking) => {
+  const listedItems =
+    booking.inventoryItems?.map((item) =>
+      typeof item === 'string' ? item : item.itemName
+    ) || [];
+
+  const customItems = booking.customItems || [];
+
+  const allItems = [...listedItems, ...customItems];
+
+  return allItems.length > 0 ? allItems.join(', ') : 'No items selected';
+};
+
 const UserManageBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [bookings, setBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
   const [loading, setLoading] = useState(true);
 
-  // Fetch user's bookings on component mount
   useEffect(() => {
     const fetchBookings = async () => {
       if (!user) return;
+
       setLoading(true);
+
       try {
         const response = await axiosInstance.get('/api/bookings', {
           headers: { Authorization: `Bearer ${user.token}` },
         });
+
         setBookings(response.data);
       } catch (error) {
         alert('Failed to fetch bookings.');
@@ -47,7 +63,6 @@ const UserManageBooking = () => {
     fetchBookings();
   }, [user]);
 
-  // Filter bookings based on active tab
   const filteredBookings = useMemo(
     () => bookings.filter((booking) => statusMatchesTab(booking, activeTab)),
     [bookings, activeTab]
@@ -55,10 +70,12 @@ const UserManageBooking = () => {
 
   const handleDelete = async (bookingId) => {
     if (!window.confirm('Confirm to cancel this booking?')) return;
+
     try {
       await axiosInstance.delete(`/api/bookings/${bookingId}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
+
       setBookings((prev) => prev.filter((booking) => booking._id !== bookingId));
     } catch (error) {
       alert('Failed to cancel booking.');
@@ -75,7 +92,7 @@ const UserManageBooking = () => {
 
   return (
     <div className="min-h-screen flex items-start justify-center py-10 px-6">
-      <div className="w-full max-w-6xl">
+      <div className="w-full max-w-7xl">
         <div className="flex flex-wrap gap-4 mb-8">
           {TABS.map((tab) => (
             <button
@@ -107,27 +124,54 @@ const UserManageBooking = () => {
                   <th className="px-4 py-3">Destination Address</th>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Inventory Items</th>
                   <th className="px-4 py-3">Remark</th>
                   <th className="px-4 py-3">Status</th>
-                  {activeTab === 'pending' && <th className="px-4 py-3 rounded-tr-2xl ">Actions</th>}
+                  {activeTab === 'pending' && (
+                    <th className="px-4 py-3 rounded-tr-2xl">Actions</th>
+                  )}
                 </tr>
               </thead>
+
               <tbody>
-                {filteredBookings.map((booking, index) => (
-                  <tr
-                    key={booking._id}
-                    className="bg-white"
-                  >
+                {filteredBookings.map((booking) => (
+                  <tr key={booking._id} className="bg-white">
                     <td className="px-4 py-3 border border-[#93A9C0] font-semibold text-black">
                       {booking.serviceType}
                     </td>
-                    <td className="px-4 py-3 border border-[#93A9C0]">{booking.propertyType}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0]">{booking.pickupAddress}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0]">{booking.destinationAddress}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0]">{formatDate(booking.date)}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0]">{booking.time || '—'}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0] text-sm">{booking.remarks || '—'}</td>
-                    <td className="px-4 py-3 border border-[#93A9C0] capitalize">{booking.status}</td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0]">
+                      {booking.propertyType}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0]">
+                      {booking.pickupAddress}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0]">
+                      {booking.destinationAddress}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0]">
+                      {formatDate(booking.date)}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0]">
+                      {booking.time || '—'}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0] text-sm">
+                      {formatInventoryItems(booking)}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0] text-sm">
+                      {booking.remarks || '—'}
+                    </td>
+
+                    <td className="px-4 py-3 border border-[#93A9C0] capitalize">
+                      {booking.status}
+                    </td>
+
                     {activeTab === 'pending' && (
                       <td className="px-4 py-3 border border-[#93A9C0]">
                         <div className="flex gap-4">
@@ -138,7 +182,7 @@ const UserManageBooking = () => {
                           >
                             Edit
                           </button>
-                          
+
                           <button
                             className="hover:text-[#dc2626]"
                             onClick={() => handleDelete(booking._id)}

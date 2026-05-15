@@ -11,6 +11,7 @@ import AdminAddService from './pages/AdminAddService';
 import AdminStaff from './pages/AdminStaff';
 import AdminAddStaff from './pages/AdminAddStaff';
 import AdminManageBooking from './pages/AdminManageBooking';
+import AdminInventory from './pages/AdminInventory';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/admin/staff" element={<AdminStaff />} />
         <Route path="/admin/staff/add" element={<AdminAddStaff />} />
         <Route path="/admin/bookings/manage" element={<AdminManageBooking />} />
+        <Route path="/admin/inventory" element={<AdminInventory />} />
       </Routes>
     </Router>
   );

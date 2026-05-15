@@ -1,22 +1,68 @@
 const Booking = require('../models/Booking');
 
-/* Normalize assigned staff input into a consistent array format */
 const normalizeAssignedStaff = (value) => {
-  if (value === undefined) return undefined; // No change if not provided
+  if (value === undefined) return undefined;
   if (value === null) return [];
+
   if (Array.isArray(value)) {
     return value.filter(Boolean);
   }
+
   if (typeof value === 'string') {
     return value ? [value] : [];
   }
+
+  return [];
+};
+
+const normalizeStringArray = (value) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const normalizeObjectIdArray = (value) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value ? [value] : [];
+  }
+
   return [];
 };
 
 const createBooking = async (req, res) => {
   try {
-    const booking = await Booking.create({ ...req.body, user: req.user.id });
-    res.status(201).json(booking);
+    const bookingData = {
+      ...req.body,
+      user: req.user.id,
+      inventoryItems: normalizeObjectIdArray(req.body.inventoryItems),
+      customItems: normalizeStringArray(req.body.customItems),
+    };
+
+    const booking = await Booking.create(bookingData);
+
+    const populatedBooking = await Booking.findById(booking._id).populate(
+      'inventoryItems',
+      'itemName category isActive'
+    );
+
+    res.status(201).json(populatedBooking);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -24,17 +70,23 @@ const createBooking = async (req, res) => {
 
 const getBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const bookings = await Booking.find({ user: req.user.id })
+      .populate('inventoryItems', 'itemName category isActive')
+      .sort({ createdAt: -1 });
+
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-/* Users can update their own bookings' details, but cannot change assigned staff or status */
 const updateBooking = async (req, res) => {
   try {
-    const booking = await Booking.findOne({ _id: req.params.id, user: req.user.id });
+    const booking = await Booking.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
@@ -42,14 +94,28 @@ const updateBooking = async (req, res) => {
     booking.serviceType = req.body.serviceType ?? booking.serviceType;
     booking.propertyType = req.body.propertyType ?? booking.propertyType;
     booking.pickupAddress = req.body.pickupAddress ?? booking.pickupAddress;
-    booking.destinationAddress = req.body.destinationAddress ?? booking.destinationAddress;
+    booking.destinationAddress =
+      req.body.destinationAddress ?? booking.destinationAddress;
     booking.date = req.body.date ?? booking.date;
     booking.time = req.body.time ?? booking.time;
     booking.remarks = req.body.remarks ?? booking.remarks;
-    booking.status = req.body.status ?? booking.status;
+
+    if (req.body.inventoryItems !== undefined) {
+      booking.inventoryItems = normalizeObjectIdArray(req.body.inventoryItems);
+    }
+
+    if (req.body.customItems !== undefined) {
+      booking.customItems = normalizeStringArray(req.body.customItems);
+    }
 
     const updated = await booking.save();
-    res.json(updated);
+
+    const populated = await Booking.findById(updated._id).populate(
+      'inventoryItems',
+      'itemName category isActive'
+    );
+
+    res.json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -57,10 +123,15 @@ const updateBooking = async (req, res) => {
 
 const deleteBooking = async (req, res) => {
   try {
-    const booking = await Booking.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    const booking = await Booking.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
+
     res.json({ message: 'Booking removed' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -71,32 +142,51 @@ const getAllBookingsAdmin = async (_req, res) => {
   try {
     const bookings = await Booking.find()
       .populate('user', 'name email phone')
-      .populate('assignedStaff', 'name role phone');
+      .populate('assignedStaff', 'name role phone')
+      .populate('inventoryItems', 'itemName category isActive')
+      .sort({ createdAt: -1 });
+
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-/* Admin can update any booking's status, assigned staff, and remarks */
 const adminUpdateBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
 
     const normalizedAssignedStaff = normalizeAssignedStaff(req.body.assignedStaff);
+
     if (normalizedAssignedStaff !== undefined) {
       booking.assignedStaff = normalizedAssignedStaff;
     }
+
     booking.status = req.body.status ?? booking.status;
     booking.remarks = req.body.remarks ?? booking.remarks;
 
     const updated = await booking.save();
-    const populated = await updated.populate('assignedStaff', 'name role phone');
+
+    const populated = await Booking.findById(updated._id)
+      .populate('user', 'name email phone')
+      .populate('assignedStaff', 'name role phone')
+      .populate('inventoryItems', 'itemName category isActive');
+
     res.json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = {  createBooking,  getBookings,  updateBooking,  deleteBooking,  getAllBookingsAdmin,  adminUpdateBooking};
+module.exports = {
+  createBooking,
+  getBookings,
+  updateBooking,
+  deleteBooking,
+  getAllBookingsAdmin,
+  adminUpdateBooking,
+};

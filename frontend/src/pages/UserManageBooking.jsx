@@ -78,7 +78,10 @@ const UserManageBooking = () => {
 
       setBookings((prev) => prev.filter((booking) => booking._id !== bookingId));
     } catch (error) {
-      alert('Failed to cancel booking.');
+      alert(
+      error.response?.data?.message ||
+      'Failed to cancel booking'
+    );
     }
   };
 

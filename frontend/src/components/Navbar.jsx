@@ -21,7 +21,7 @@ const Navbar = () => {
         </span>
       </Link>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         {user ? (
           isAdmin ? (
             <>
@@ -41,6 +41,10 @@ const Navbar = () => {
                 Inventory
               </Link>
 
+              <Link to="/admin/vehicle" className="font-medium hover:underline">
+                Vehicle
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded hover:bg-red-700"
@@ -49,7 +53,7 @@ const Navbar = () => {
               </button>
 
               <span className="font-semibold">
-                Hi, {user.username || 'admin'}
+                Hi {user.username || 'admin'}
               </span>
             </>
           ) : (

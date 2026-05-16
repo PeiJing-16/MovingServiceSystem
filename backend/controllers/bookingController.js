@@ -165,6 +165,7 @@ const getAllBookingsAdmin = async (_req, res) => {
       .populate('user', 'name email phone')
       .populate('assignedStaff', 'name role phone')
       .populate('inventoryItems', 'itemName category isActive')
+      .populate('assignedVehicle', 'vehicleType regoNumber capacityKg')
       .sort({ createdAt: -1 });
 
     res.json(bookings);
@@ -187,6 +188,10 @@ const adminUpdateBooking = async (req, res) => {
       booking.assignedStaff = normalizedAssignedStaff;
     }
 
+    if (req.body.assignedVehicle !== undefined) {
+      booking.assignedVehicle = req.body.assignedVehicle || null;
+    }
+
     booking.status = req.body.status ?? booking.status;
     booking.remarks = req.body.remarks ?? booking.remarks;
 
@@ -195,7 +200,8 @@ const adminUpdateBooking = async (req, res) => {
     const populated = await Booking.findById(updated._id)
       .populate('user', 'name email phone')
       .populate('assignedStaff', 'name role phone')
-      .populate('inventoryItems', 'itemName category isActive');
+      .populate('inventoryItems', 'itemName category isActive')
+      .populate('assignedVehicle', 'vehicleType regoNumber capacityKg');
 
     res.json(populated);
   } catch (error) {

@@ -43,13 +43,14 @@ const AdminManageBooking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const booking = location.state?.booking;
-
   const [staffOptions, setStaffOptions] = useState([]);
   const [assignedStaff, setAssignedStaff] = useState([]);
   const [statusDecision, setStatusDecision] = useState('');
   const [saving, setSaving] = useState(false);
+  const [vehicleOptions, setVehicleOptions] = useState([]);
+  const [assignedVehicle, setAssignedVehicle] = useState(booking?.assignedVehicle?._id || booking?.assignedVehicle || '');
+
 
   useEffect(() => {
     if (!booking) {
@@ -71,7 +72,19 @@ const AdminManageBooking = () => {
       }
     };
 
-    fetchStaff();
+    const fetchVehicles = async () => {
+      if (!user?.isAdmin) return;
+      try {
+        const response = await axiosInstance.get('/api/vehicles');
+        setVehicleOptions(response.data);
+      } catch (error) {
+        alert('Failed to load vehicle options.');
+      }
+    };
+
+  fetchStaff();
+  fetchVehicles();
+
   }, [user]);
 
   if (!user?.isAdmin) {
@@ -106,6 +119,7 @@ const AdminManageBooking = () => {
     try {
       await axiosInstance.put(`/api/bookings/admin/${booking._id}`, {
         assignedStaff,
+        assignedVehicle,
         status: statusDecision || booking.status,
       });
 
@@ -229,6 +243,19 @@ const AdminManageBooking = () => {
                   Hold Ctrl/Cmd to select multiple staff members. Leave empty to keep unassigned.
                 </p>
               </div>
+
+              <select
+                value={assignedVehicle}
+                onChange={(e) => setAssignedVehicle(e.target.value)}
+                className="w-full rounded-2xl bg-[#C1D8F0] py-3 px-6"
+              >
+                <option value="">Assign Vehicle</option>
+                {vehicleOptions.map((vehicle) => (
+                  <option key={vehicle._id} value={vehicle._id}>
+                    {vehicle.vehicleType} - {vehicle.regoNumber} ({vehicle.capacityKg}kg)
+                  </option>
+                ))}
+              </select>
 
               <select
                 value={statusDecision}

@@ -69,6 +69,7 @@ const AdminBooking = () => {
   const [bookings, setBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchAllBookings = async () => {
@@ -94,8 +95,23 @@ const AdminBooking = () => {
       return [];
     }
 
-    return bookings.filter((booking) => statusMatches(booking, activeTab));
-  }, [bookings, activeTab, user]);
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return bookings
+      .filter((booking) => statusMatches(booking, activeTab))
+      .filter((booking) => {
+        if (!normalizedSearch) return true;
+
+        const bookingId = booking._id?.slice(-5).toLowerCase() || '';
+        const clientName = booking.user?.name?.toLowerCase() || '';
+        const clientEmail = booking.user?.email?.toLowerCase() || '';
+        const serviceType = booking.serviceType?.toLowerCase() || '';
+
+        return [bookingId, clientName, clientEmail, serviceType].some((value) =>
+          value.includes(normalizedSearch)
+        );
+      });
+  }, [bookings, activeTab, searchTerm, user]);
 
   const bookingCounts = useMemo(
     () =>
@@ -186,15 +202,40 @@ const AdminBooking = () => {
           ))}
         </div>
 
+        <div className="flex flex-col gap-3 rounded-[2rem] border border-[#c8e1fb] bg-white/80 p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#0d2440]">Current View</p>
+            <p className="text-sm text-[#546b86]">
+              {bookingCounts[activeTab] || 0} booking{bookingCounts[activeTab] === 1 ? '' : 's'} in{' '}
+              {ADMIN_TABS.find((tab) => tab.key === activeTab)?.label.toLowerCase()}.
+            </p>
+          </div>
+
+          <label className="w-full md:max-w-sm">
+            <span className="sr-only">Search bookings</span>
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search by booking ID, client, email, or service"
+              className="w-full rounded-full border border-[#c8e1fb] bg-white px-4 py-3 text-sm text-[#0d2440] outline-none transition focus:border-[#142C3E] focus:ring-2 focus:ring-[#d7efff]"
+            />
+          </label>
+        </div>
+
         {loading ? (
           <div className="rounded-[2rem] border border-dashed border-[#aac8e8] bg-white/70 px-6 py-12 text-center text-[#0d2440]">
             Loading bookings...
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-[#aac8e8] bg-white/70 px-6 py-12 text-center">
-            <p className="text-lg font-semibold text-[#0d2440]">No bookings in this category.</p>
+            <p className="text-lg font-semibold text-[#0d2440]">
+              {searchTerm.trim() ? 'No bookings match this search.' : 'No bookings in this category.'}
+            </p>
             <p className="mt-2 text-sm text-[#546b86]">
-              Switch tabs to review bookings in another status.
+              {searchTerm.trim()
+                ? 'Try a different booking ID, client name, email, or service type.'
+                : 'Switch tabs to review bookings in another status.'}
             </p>
           </div>
         ) : (
@@ -227,6 +268,19 @@ const AdminBooking = () => {
                 </div>
 
                 <div className="space-y-5 p-6">
+                  {(!booking.assignedStaff?.length || !booking.assignedVehicle) && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      <p className="font-semibold">Needs attention</p>
+                      <p className="mt-1">
+                        {!booking.assignedStaff?.length && !booking.assignedVehicle
+                          ? 'Staff and vehicle are still unassigned.'
+                          : !booking.assignedStaff?.length
+                            ? 'Staff assignment is still pending.'
+                            : 'Vehicle assignment is still pending.'}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl bg-[#eef6ff] p-4">
                       <p className="text-xs font-semibold uppercase tracking-wide text-[#546b86]">

@@ -57,6 +57,9 @@ const bookingSchema = new mongoose.Schema(
       default: [],
     },
 
+    assignedVehicle: {
+      type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null,},
+
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'completed', 'cancelled'],

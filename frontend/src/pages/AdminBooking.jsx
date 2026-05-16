@@ -196,6 +196,11 @@ const AdminBooking = () => {
                 </p>
 
                 <p className="text-[#0d2440]">
+                  <span className="font-semibold">Assigned Vehicle:</span>{' '} {booking.assignedVehicle ? `${booking.assignedVehicle.vehicleType} - ${booking.assignedVehicle.regoNumber}`
+                    : 'Unassigned'}
+                </p>
+
+                <p className="text-[#0d2440]">
                   <span className="font-semibold">Client:</span> {booking.user?.name || 'Unknown'}
                 </p>
 

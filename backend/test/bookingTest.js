@@ -315,7 +315,10 @@ describe('bookingController', () => {
                 remarks: 'Finished nicely',
             };
 
-            const thirdPopulateStub = sinon.stub().resolves(populatedBooking);
+            const fourthPopulateStub = sinon.stub().resolves(populatedBooking);
+            const thirdPopulateStub = sinon.stub().returns({
+                populate: fourthPopulateStub,
+            });
             const secondPopulateStub = sinon.stub().returns({
                 populate: thirdPopulateStub,
             });
@@ -366,6 +369,13 @@ describe('bookingController', () => {
                 thirdPopulateStub.calledOnceWithExactly(
                     'inventoryItems',
                     'itemName category isActive'
+                )
+            ).to.be.true;
+
+            expect(
+                fourthPopulateStub.calledOnceWithExactly(
+                    'assignedVehicle',
+                    'vehicleType regoNumber capacityKg'
                 )
             ).to.be.true;
 

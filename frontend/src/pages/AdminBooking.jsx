@@ -10,6 +10,13 @@ const ADMIN_TABS = [
   { key: 'cancelled', label: 'Cancelled Booking' },
 ];
 
+const STATUS_STYLES = {
+  pending: 'bg-amber-100 text-amber-800 border border-amber-200',
+  confirmed: 'bg-sky-100 text-sky-800 border border-sky-200',
+  completed: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+  cancelled: 'bg-rose-100 text-rose-800 border border-rose-200',
+};
+
 const statusMatches = (booking, tab) => booking.status === tab;
 
 // Helper functions to format booking details for display
@@ -90,6 +97,15 @@ const AdminBooking = () => {
     return bookings.filter((booking) => statusMatches(booking, activeTab));
   }, [bookings, activeTab, user]);
 
+  const bookingCounts = useMemo(
+    () =>
+      ADMIN_TABS.reduce((counts, tab) => {
+        counts[tab.key] = bookings.filter((booking) => statusMatches(booking, tab.key)).length;
+        return counts;
+      }, {}),
+    [bookings]
+  );
+
   if (!user?.isAdmin) {
     return (
       <div className="min-h-screen bg-[#D7EFFF] flex items-center justify-center p-6 text-center">
@@ -119,108 +135,186 @@ const AdminBooking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#D7EFFF] p-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-semibold text-[#0d2440] mb-8">Booking Management</h1>
+    <div className="min-h-screen bg-[#D7EFFF] px-4 py-6 md:px-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <section className="rounded-[2rem] border border-[#c8e1fb] bg-white/90 p-6 shadow-lg md:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl space-y-3">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#546b86]">
+                Admin Workspace
+              </p>
+              <h1 className="text-3xl font-semibold text-[#0d2440] md:text-4xl">
+                Booking Management
+              </h1>
+              <p className="text-sm leading-6 text-[#546b86] md:text-base">
+                Review live bookings by status and open a booking to assign staff, allocate a
+                vehicle, or update its progress.
+              </p>
+            </div>
 
-        <div className="flex flex-wrap gap-4 mb-8">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {ADMIN_TABS.map((tab) => (
+                <div
+                  key={tab.key}
+                  className="rounded-2xl bg-[#eef6ff] px-4 py-3 text-center shadow-sm"
+                >
+                  <p className="text-2xl font-semibold text-[#0d2440]">
+                    {bookingCounts[tab.key] || 0}
+                  </p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[#546b86]">
+                    {tab.label.replace(' Booking', '')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="flex flex-wrap gap-3">
           {ADMIN_TABS.map((tab) => (
             <button
               key={tab.key}
-              className={`px-6 py-2 rounded-full font-semibold transition drop-shadow-lg ${
-                activeTab === tab.key ? 'bg-[#142C3E] text-white' : 'bg-[#93A9C0] text-[#0d2440]'
+              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition shadow-sm ${
+                activeTab === tab.key
+                  ? 'bg-[#142C3E] text-white'
+                  : 'bg-white text-[#0d2440] hover:bg-[#eef6ff]'
               }`}
               onClick={() => setActiveTab(tab.key)}
             >
-              {tab.label}
+              {tab.label} ({bookingCounts[tab.key] || 0})
             </button>
           ))}
         </div>
 
         {loading ? (
-          <p className="text-center text-[#0d2440]">Loading bookings...</p>
+          <div className="rounded-[2rem] border border-dashed border-[#aac8e8] bg-white/70 px-6 py-12 text-center text-[#0d2440]">
+            Loading bookings...
+          </div>
         ) : filteredBookings.length === 0 ? (
-          <p className="text-center text-[#0d2440]">No bookings in this category.</p>
+          <div className="rounded-[2rem] border border-dashed border-[#aac8e8] bg-white/70 px-6 py-12 text-center">
+            <p className="text-lg font-semibold text-[#0d2440]">No bookings in this category.</p>
+            <p className="mt-2 text-sm text-[#546b86]">
+              Switch tabs to review bookings in another status.
+            </p>
+          </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 xl:grid-cols-2">
             {filteredBookings.map((booking) => (
               <div
                 key={booking._id}
-                className="bg-white rounded-3xl shadow-lg border border-[#c8e1fb] p-6 space-y-2"
+                className="overflow-hidden rounded-[2rem] border border-[#c8e1fb] bg-white shadow-lg"
               >
-                <p className="text-sm text-[#546b86] font-semibold">
-                  Booking ID:{' '}
-                  <span className="text-[#0d2440]">
-                    {booking._id.slice(-5).toUpperCase()}
-                  </span>
-                </p>
+                <div className="border-b border-[#e3eef9] bg-[#f8fbff] px-6 py-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#546b86]">
+                        Booking {booking._id.slice(-5).toUpperCase()}
+                      </p>
+                      <h2 className="text-xl font-semibold text-[#0d2440]">
+                        {booking.user?.name || 'Unknown Client'}
+                      </h2>
+                      <p className="text-sm text-[#546b86]">{booking.user?.email || '—'}</p>
+                    </div>
 
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Pick up Address:</span> {booking.pickupAddress}
-                </p>
+                    <span
+                      className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                        STATUS_STYLES[booking.status] || 'bg-slate-100 text-slate-800 border border-slate-200'
+                      }`}
+                    >
+                      {booking.status}
+                    </span>
+                  </div>
+                </div>
 
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Destination Address:</span> {booking.destinationAddress}
-                </p>
+                <div className="space-y-5 p-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl bg-[#eef6ff] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#546b86]">
+                        Route
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-[#0d2440]">Pick up</p>
+                      <p className="text-sm text-[#0d2440]">{booking.pickupAddress}</p>
+                      <p className="mt-3 text-sm font-semibold text-[#0d2440]">Destination</p>
+                      <p className="text-sm text-[#0d2440]">{booking.destinationAddress}</p>
+                    </div>
 
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Service Type:</span> {booking.serviceType}
-                </p>
+                    <div className="rounded-2xl bg-[#eef6ff] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#546b86]">
+                        Schedule
+                      </p>
+                      <div className="mt-2 grid grid-cols-2 gap-3 text-sm text-[#0d2440]">
+                        <div>
+                          <p className="font-semibold">Date</p>
+                          <p>{formatDate(booking.date)}</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold">Time</p>
+                          <p>{formatTime(booking.time)}</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold">Service</p>
+                          <p>{booking.serviceType}</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold">Property</p>
+                          <p>{booking.propertyType}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Property Type:</span> {booking.propertyType}
-                </p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-[#e3eef9] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#546b86]">
+                        Resources
+                      </p>
+                      <div className="mt-2 space-y-3 text-sm text-[#0d2440]">
+                        <div>
+                          <p className="font-semibold">Assigned Staff</p>
+                          <p>{formatStaffList(booking.assignedStaff)}</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold">Assigned Vehicle</p>
+                          <p>
+                            {booking.assignedVehicle
+                              ? `${booking.assignedVehicle.vehicleType} - ${booking.assignedVehicle.regoNumber}`
+                              : 'Unassigned'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Date:</span> {formatDate(booking.date)}
-                </p>
+                    <div className="rounded-2xl border border-[#e3eef9] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#546b86]">
+                        Booking Details
+                      </p>
+                      <div className="mt-2 space-y-3 text-sm text-[#0d2440]">
+                        <div>
+                          <p className="font-semibold">Inventory Items</p>
+                          <p>{formatInventoryItems(booking)}</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold">Remarks</p>
+                          <p>{booking.remarks || '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Time:</span> {formatTime(booking.time)}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Inventory Items:</span> {formatInventoryItems(booking)}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Status:</span> {booking.status}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Remarks:</span> {booking.remarks || '—'}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Assigned Staff:</span> {formatStaffList(booking.assignedStaff)}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Assigned Vehicle:</span>{' '} {booking.assignedVehicle ? `${booking.assignedVehicle.vehicleType} - ${booking.assignedVehicle.regoNumber}`
-                    : 'Unassigned'}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Client:</span> {booking.user?.name || 'Unknown'}
-                </p>
-
-                <p className="text-[#0d2440]">
-                  <span className="font-semibold">Contact:</span> {booking.user?.email || '—'}
-                </p>
-
-                <div className="flex gap-4 pt-4">
+                  <div className="flex gap-4 pt-1">
                   <button
                     onClick={() => handleCardAction('edit', booking)}
                     disabled={['completed', 'cancelled'].includes(booking.status)}
                     className={[
-                      'flex-1 rounded-full py-2 font-semibold transition',
+                      'flex-1 rounded-full py-3 font-semibold transition',
                       ['completed', 'cancelled'].includes(booking.status)
                         ? 'bg-gray-400 text-white cursor-not-allowed opacity-70'
                         : 'bg-[#142C3E] text-white hover:bg-[#0f1b2c]',
                     ].join(' ')}
                   >
-                    Edit
+                    Manage Booking
                   </button>
+                </div>
                 </div>
               </div>
             ))}

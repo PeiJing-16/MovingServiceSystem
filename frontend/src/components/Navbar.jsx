@@ -18,7 +18,7 @@ const Navbar = () => {
       <img src="/Logo.png" alt="Logo" className="h-12 w-15" />
         <span className="text-2xl font-bold">Moving Service Scheduler System</span>
       </Link>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         {user ? (
           isAdmin ? (
             <>
@@ -31,13 +31,17 @@ const Navbar = () => {
               <Link to="/admin/staff" className="font-medium hover:underline">
                 Staff
               </Link>
+              <Link to="/admin/vehicle" className="font-medium hover:underline">
+                Vehicle
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded hover:bg-red-700"
               >
                 Logout
               </button>
-              <span className="font-semibold">Hi, {user.username || 'admin'}</span>
+              <span className="font-semibold">Hi {user.username || 'admin'}</span>
             </>
           ) : (
             <>

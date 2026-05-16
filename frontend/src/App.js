@@ -12,6 +12,8 @@ import AdminStaff from './pages/AdminStaff';
 import AdminAddStaff from './pages/AdminAddStaff';
 import AdminManageBooking from './pages/AdminManageBooking';
 import AdminInventory from './pages/AdminInventory';
+import AdminAddVehicle from './pages/AdminAddVehicle';
+import AdminVehicle from './pages/AdminVehicle';
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
         <Route path="/admin/staff/add" element={<AdminAddStaff />} />
         <Route path="/admin/bookings/manage" element={<AdminManageBooking />} />
         <Route path="/admin/inventory" element={<AdminInventory />} />
+        <Route path="/admin/vehicle/add" element={<AdminAddVehicle />} />
+        <Route path="/admin/vehicle/" element={<AdminVehicle />} />
       </Routes>
     </Router>
   );

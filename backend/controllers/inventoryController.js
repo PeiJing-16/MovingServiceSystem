@@ -1,69 +1,53 @@
-const InventoryService = require('../services/InventoryService');
-const InventoryItemFactory = require('../factories/InventoryItemFactory');
+const InventoryFacade = require('../services/InventoryFacade');
 
-const inventoryService = new InventoryService();
-
-const handleError = (res, error) => {
-  const statusCode = error.statusCode || 500;
-  res.status(statusCode).json({ message: error.message });
-};
-
-// Customer: only active inventory checklist items
 const getInventoryItems = async (_req, res) => {
   try {
-    const items = await inventoryService.getActiveItems();
+    // Customer route: only active inventory items
+    const items = await InventoryFacade.getActiveItems();
     res.json(items);
   } catch (error) {
-    handleError(res, error);
+    res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 
-// Admin: all inventory checklist items
 const getAllInventoryItems = async (_req, res) => {
   try {
-    const items = await inventoryService.getAllItemsForAdmin();
+    // Admin route: all inventory items
+    const items = await InventoryFacade.getAllItemsForAdmin();
     res.json(items);
   } catch (error) {
-    handleError(res, error);
+    res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 
-// Admin: create inventory item
 const createInventoryItem = async (req, res) => {
   try {
-    const itemData = InventoryItemFactory.createFromRequest(req.body);
-    const item = await inventoryService.createInventoryItem(itemData);
-
+    const item = await InventoryFacade.createInventoryItem(req.body);
     res.status(201).json(item);
   } catch (error) {
-    handleError(res, error);
+    res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 
-// Admin: update inventory item
 const updateInventoryItem = async (req, res) => {
   try {
-    const updateData = InventoryItemFactory.createUpdateObject(req.body);
-
-    const updatedItem = await inventoryService.updateInventoryItem(
+    const item = await InventoryFacade.updateInventoryItem(
       req.params.id,
-      updateData
+      req.body
     );
 
-    res.json(updatedItem);
+    res.json(item);
   } catch (error) {
-    handleError(res, error);
+    res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 
-// Admin: delete inventory item
 const deleteInventoryItem = async (req, res) => {
   try {
-    await inventoryService.delete(req.params.id);
-
-    res.json({ message: 'Inventory item deleted successfully' });
+    await InventoryFacade.deleteInventoryItem(req.params.id);
+    res.json({ message: 'Inventory item removed' });
   } catch (error) {
-    handleError(res, error);
+    res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 

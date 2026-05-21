@@ -1,5 +1,11 @@
 const Booking = require('../models/Booking');
-const BookingStatusContext = require('../services/BookingStatusStrategy')
+const BookingStatusContext = require('../services/BookingStatusStrategy');
+
+const {
+  BookingStatusSubject,
+  BookingAuditLogObserver,
+  CustomerNotificationObserver,
+} = require('../services/BookingStatusObserver');
 
 const normalizeAssignedStaff = (value) => {
   if (value === undefined) return undefined;
@@ -58,10 +64,8 @@ const createBooking = async (req, res) => {
 
     const booking = await Booking.create(bookingData);
 
-    const populatedBooking = await Booking.findById(booking._id).populate(
-      'inventoryItems',
-      'itemName category isActive'
-    );
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate('inventoryItems', 'itemName category isActive');
 
     res.status(201).json(populatedBooking);
   } catch (error) {
@@ -92,12 +96,12 @@ const updateBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // controller asks the BookingStatusContext to know the current booking status is that able to update
+    // Strategy pattern: check whether the user is allowed to update the booking
     const statusContext = new BookingStatusContext(booking.status);
 
     if (!statusContext.canUserUpdate()) {
       return res.status(400).json({
-        message: "Only pending bookings can be updated.",
+        message: 'Only pending bookings can be updated.',
       });
     }
 
@@ -120,10 +124,8 @@ const updateBooking = async (req, res) => {
 
     const updated = await booking.save();
 
-    const populated = await Booking.findById(updated._id).populate(
-      'inventoryItems',
-      'itemName category isActive'
-    );
+    const populated = await Booking.findById(updated._id)
+      .populate('inventoryItems', 'itemName category isActive');
 
     res.json(populated);
   } catch (error) {
@@ -142,12 +144,12 @@ const deleteBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // controller asks the BookingStatusContext to know the current booking status is that able to delete
+    // Strategy pattern: check whether the user is allowed to cancel the booking
     const statusContext = new BookingStatusContext(booking.status);
 
     if (!statusContext.canUserCancel()) {
       return res.status(400).json({
-        message: "Only pending bookings can be canceled.",
+        message: 'Only pending bookings can be canceled.',
       });
     }
 
@@ -182,6 +184,8 @@ const adminUpdateBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    const oldStatus = booking.status;
+
     const normalizedAssignedStaff = normalizeAssignedStaff(req.body.assignedStaff);
 
     if (normalizedAssignedStaff !== undefined) {
@@ -202,6 +206,20 @@ const adminUpdateBooking = async (req, res) => {
       .populate('assignedStaff', 'name role phone')
       .populate('inventoryItems', 'itemName category isActive')
       .populate('assignedVehicle', 'vehicleType regoNumber capacityKg');
+
+    // Observer pattern: notify observers only when booking status changes
+    if (oldStatus !== updated.status) {
+      const bookingStatusSubject = new BookingStatusSubject();
+
+      bookingStatusSubject.attach(new BookingAuditLogObserver());
+      bookingStatusSubject.attach(new CustomerNotificationObserver());
+
+      bookingStatusSubject.notify({
+        booking: populated,
+        oldStatus,
+        newStatus: updated.status,
+      });
+    }
 
     res.json(populated);
   } catch (error) {

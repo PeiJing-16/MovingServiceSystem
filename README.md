@@ -21,6 +21,8 @@ The Moving Service Scheduler System is designed to simplify the process of sched
 - View all bookings
 - Update booking status
 - Assign staff to bookings
+- Assign vehicles to bookings
+- Assign inventory to bookings
 - Manage services
 - Manage staff
 
